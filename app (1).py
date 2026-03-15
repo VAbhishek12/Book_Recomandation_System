@@ -1,7 +1,6 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
-import pickle
 from sklearn.metrics.pairwise import cosine_similarity
 
 st.set_page_config(page_title="Book Recommendation System", layout="wide")
@@ -19,14 +18,13 @@ def load_data():
 
 books, ratings, users, pt = load_data()
 
-# Compute Similarity
+# Similarity Matrix
 @st.cache_data
 def compute_similarity():
     similarity = cosine_similarity(pt)
     return similarity
 
-similarity_score = compute_similarity()
-
+similarity = compute_similarity()
 
 # Recommendation Function
 def recommend(book_name):
@@ -34,7 +32,7 @@ def recommend(book_name):
     index = np.where(pt.index == book_name)[0][0]
 
     similar_books = sorted(
-        list(enumerate(similarity_score[index])),
+        list(enumerate(similarity[index])),
         key=lambda x: x[1],
         reverse=True
     )[1:6]
@@ -56,28 +54,24 @@ def recommend(book_name):
     return recommended_books, images, authors
 
 
-# UI
 st.subheader("Find Similar Books")
 
 book_list = list(pt.index.values)
 
 selected_book = st.selectbox(
-    "Select a book",
+    "Select a Book",
     book_list
 )
 
 if st.button("Recommend"):
 
-    with st.spinner("Finding similar books..."):
-
-        books, images, authors = recommend(selected_book)
+    books, images, authors = recommend(selected_book)
 
     cols = st.columns(5)
 
     for i in range(5):
 
         with cols[i]:
-
             st.image(images[i])
             st.write(books[i])
             st.caption(authors[i])

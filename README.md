@@ -1,35 +1,57 @@
-# 📚 Book Recommendation System
+﻿# Book Recommendation System
 
-A content-based Book Recommendation System built using collaborative filtering techniques, allowing users to receive suggestions based on past user interactions and preferences.
+Item-based collaborative filtering that recommends books similar to one you already like, built on the Book-Crossing ratings dataset and served as a Streamlit app.
 
-## 🔍 Overview
+## How it works
 
-This project builds a recommendation engine using user ratings data to recommend books. It is implemented in Python using data science libraries such as Pandas, NumPy, and Scikit-learn. A basic web app is also provided using Streamlit for interaction.
+1. **Clean** – keep explicit ratings only (rating > 0).
+2. **Filter** – keep active readers (≥ 20 ratings) and books rated by at least 15 of them, so each book has enough signal.
+3. **Pivot** – build a book × user rating matrix.
+4. **Compare** – compute cosine similarity between every pair of books.
+5. **Recommend** – return the five books whose rating vectors are closest to the selected title.
 
-## 📁 Repository Structure
+The thresholds are constants at the top of [`src/recommender.py`](src/recommender.py).
 
-![image](https://github.com/user-attachments/assets/84e46c70-1d0a-47e8-b016-2431a1fcebc2)
+## Repository layout
 
+```
+.
+├── app.py                  Streamlit app
+├── src/recommender.py      data loading, filtering, similarity, recommend()
+├── data/                   Books.csv, Ratings.csv, Users.csv (Book-Crossing)
+├── notebooks/              exploratory analysis and the first prototype
+└── requirements.txt
+```
 
-## 📊 Dataset
+## Run locally
 
-The dataset consists of:
-- `Books.csv`: Book title, authors, publisher, etc.
-- `Users.csv`: User demographics (e.g., age, location)
-- `Ratings.csv`: User-book rating matrix
+```bash
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+streamlit run app.py
+```
 
-## 🧠 Techniques Used
+The similarity matrix is built from the CSVs on first launch (a few seconds) and cached for the session.
 
-- **Collaborative Filtering**
-- **Cosine Similarity**
-- **KNN for Nearest Neighbors**
-- **Data Preprocessing & Cleaning**
-- **Exploratory Data Analysis (EDA)**
+## Use it as a library
 
-## 🚀 How to Run
+```python
+from src.recommender import build
 
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/VAbhishek12/Book_Recomandation_System.git
-   cd Book_Recomandation_System
+model = build()
+model.recommend("A Bend in the Road", n=5)
+```
 
+## Dataset
+
+[Book-Crossing](https://www2.informatik.uni-freiburg.de/~cziegler/BX/) – book metadata, user profiles and about 722 k rating rows (282 k explicit, the rest implicit 0s). The app builds its model on roughly 800 well-rated titles.
+
+## Notes
+
+- The notebook in `notebooks/` is the original exploration. Its filtering is looser than the app's, so recommendations will not match exactly.
+- Recommendations are only available for titles that pass the filters above.
+
+## Tech
+
+Python · Pandas · NumPy · scikit-learn · Streamlit
